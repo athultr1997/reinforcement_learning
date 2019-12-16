@@ -17,75 +17,91 @@ class greedy_action_value_agent:
 		"""
 		self.N = N
 		self.epsilon = epsilon
-		self.table = list()
-
-		for i in range(self.N):
-			self.table.append([0,0,0])
+		self.table = np.zeros([self.N,3], dtype = float)
 
 	def take_action(self):
 		s = np.random.uniform(low = 0.0, high = 1.0, size = None)
 
 		if s > self.epsilon:
-			maxima_action = 0
-			for i in range(self.N):
-				if self.table[i][0]>self.table[maxima_action][0]:
-					maxima_action = i
-			return maxima_action
+			maxima = np.amax(self.table[:,0])
+			max_indices = np.where(self.table[:,0] == maxima)[0]
+			if max_indices.size == 1:
+				return int(max_indices[0])
+			else:
+				# Tie-breaking
+				p = np.random.uniform(low = 0.0, high = max_indices.size, size = None)
+				return int(max_indices[int(p)])
 		else:
 			l = np.random.uniform(low = 0.0, high = self.N, size = None)
 			return int(l)
 
 	def update_table(self,action,reward):
- 		self.table[action][1] += reward
- 		self.table[action][2] += 1
- 		self.table[action][0] = self.table[action][1] / self.table[action][2]
+		self.table[action][1] += reward
+		self.table[action][2] += 1
+		self.table[action][0] = self.table[action][1] / self.table[action][2]
 
 	def reset(self):
- 		for i in range(self.N):
- 			for j in range(3):
- 				self.table[i][j] = 0
+		self.table = np.zeros([self.N,3], dtype = float) 		
 		
 
 class bandit_problem_test_bed:
 	def __init__(self, N):
 		self.N = N
-		self.true_values = [None] * self.N
+		self.true_values = None
+		self.optimal_action = None
 
 	def reset(self):
-		for i in range(self.N):
-			self.true_values[i] = np.random.normal(loc = 0.0, scale = 1.0, size = None)
-		
+		self.true_values = np.random.normal(loc = 0.0, scale = 1.0, size = self.N)
+		self.optimal_action = np.where(self.true_values == np.amax(self.true_values))[0][0]
 		# plt.scatter(range(self.N), self.true_values, marker = 'o', c = 'r')
 		# plt.show()
 
 	def calculate_reward(self, action):
 		return np.random.normal(loc = self.true_values[action], scale = 1.0, size = None)
 
+	def plot(self, avg_rewards_list, opt_action_per_list, agent):
+		plt.figure(1)
+		plt.plot(range(self.time_steps),avg_rewards_list,label = "$\epsilon$ = " + str(agent.epsilon))
+		plt.figure(2)
+		plt.plot(range(self.time_steps),opt_action_per_list,label = "$\epsilon$ = " + str(agent.epsilon))
+
+	def show_figures(self):
+		plt.figure(1)
+		plt.title("Average Rewards VS Time Step Graph for " + str(self.N) + " Bandits")
+		plt.ylabel("Average Rewards for " + str(self.runs) + " Runs")
+		plt.xlabel("Time Step")
+		plt.legend()		
+
+		plt.figure(2)
+		plt.title("Percentage Optimal Action VS Time Step Graph for " + str(self.N) + " Bandits")
+		plt.ylabel("Percentage Optimal Action for " + str(self.runs) + " Runs")
+		plt.xlabel("Time Step")
+		plt.legend()
+
+		plt.show()
+
 	def test(self, agent, time_steps = 1000, runs = 2000):
 		self.time_steps = time_steps
 		self.runs = runs
 
-		avg_reward = [0] * time_steps
+		rewards_list = np.zeros(self.time_steps)
+		opt_action_list = np.zeros(self.time_steps)
 		for i in range(self.runs):
 			self.reset()
-			agent.reset()
-			rewards = list()
+			agent.reset()		
 			
-			for j in range(self.time_steps):
+			for j in range(self.time_steps):				
 				action = agent.take_action()
 				reward = self.calculate_reward(action)
 				agent.update_table(action,reward)
-				rewards.append(reward)
-				# print(agent.table)
-			avg_reward = [(((i)*ar)+(r))/(i+1) for ar,r in zip(avg_reward,rewards)]
+				rewards_list[j] += reward
+				if action == self.optimal_action:
+					opt_action_list[j] += 1											
+		
+		opt_action_per_list = opt_action_list / self.runs
+		avg_rewards_list = rewards_list / self.runs
 
-		plt.plot(range(self.time_steps),avg_reward,label = "$\epsilon$ = " + str(agent.epsilon))
-	
-	def show_figures(self):
-		plt.ylabel("Average Rewards for " + str(self.runs) + " Runs")
-		plt.xlabel("Time Step")
-		plt.legend()
-		plt.show()
+		self.plot(avg_rewards_list, opt_action_per_list, agent)			
 
 
 def experiment1():
@@ -103,9 +119,3 @@ def experiment1():
 
 if __name__ == '__main__':
 	experiment1()
-
-	
-
-
-
-
