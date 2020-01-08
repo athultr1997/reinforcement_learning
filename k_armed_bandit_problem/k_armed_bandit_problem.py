@@ -7,8 +7,8 @@ Definitions
 Actions are indexed from '0' to 'N-1' if there are 'N' actions
 """
 
-class greedy_action_value_agent:
-	def __init__(self, N = 10, epsilon = 0.1):
+class epsilon_greedy_agent:
+	def __init__(self, N = 10, epsilon = 0.1, initial_value = 0):
 		"""
 		table is the DS which stores the values for each actions
 		table[i][0] -> The estimate of the value of action 'i'
@@ -17,9 +17,10 @@ class greedy_action_value_agent:
 		"""
 		self.N = N
 		self.epsilon = epsilon
-		self.table = np.zeros([self.N,3], dtype = float)
+		self.initial_value = initial_value
+		self.table = np.full([self.N,3], self.initial_value, dtype = float)
 
-	def take_action(self):
+	def act(self):
 		s = np.random.uniform(low = 0.0, high = 1.0, size = None)
 
 		if s > self.epsilon:
@@ -41,7 +42,7 @@ class greedy_action_value_agent:
 		self.table[action][0] = self.table[action][1] / self.table[action][2]
 
 	def reset(self):
-		self.table = np.zeros([self.N,3], dtype = float) 		
+		self.table = np.full([self.N,3], self.initial_value, dtype = float) 		
 		
 
 class bandit_problem_test_bed:
@@ -61,9 +62,9 @@ class bandit_problem_test_bed:
 
 	def plot(self, avg_rewards_list, opt_action_per_list, agent):
 		plt.figure(1)
-		plt.plot(range(self.time_steps),avg_rewards_list,label = "$\epsilon$ = " + str(agent.epsilon))
+		plt.plot(range(self.time_steps),avg_rewards_list,label = "$\epsilon$ = " + str(agent.epsilon) + "; initial value = " + str(agent.initial_value))
 		plt.figure(2)
-		plt.plot(range(self.time_steps),opt_action_per_list,label = "$\epsilon$ = " + str(agent.epsilon))
+		plt.plot(range(self.time_steps),opt_action_per_list,label = "$\epsilon$ = " + str(agent.epsilon) + "; initial value = " + str(agent.initial_value))
 
 	def show_figures(self):
 		plt.figure(1)
@@ -91,7 +92,7 @@ class bandit_problem_test_bed:
 			agent.reset()		
 			
 			for j in range(self.time_steps):				
-				action = agent.take_action()
+				action = agent.act()
 				reward = self.calculate_reward(action)
 				agent.update_table(action,reward)
 				rewards_list[j] += reward
@@ -105,10 +106,14 @@ class bandit_problem_test_bed:
 
 
 def experiment1():
-	agent1 = greedy_action_value_agent(10, epsilon = 0)
-	agent2 = greedy_action_value_agent(10, epsilon = 0.01)
-	agent3 = greedy_action_value_agent(10, epsilon = 0.1)
-	agent4 = greedy_action_value_agent(10, epsilon = 0.5)
+	"""
+	Four epsilon-greedy agents with epsilon 0, 0.01, 0.1 and 0.5
+	are created and compared.
+	"""
+	agent1 = epsilon_greedy_agent(10, epsilon = 0, initial_value = 0)
+	agent2 = epsilon_greedy_agent(10, epsilon = 0.01, initial_value = 0)
+	agent3 = epsilon_greedy_agent(10, epsilon = 0.1, initial_value = 0)
+	agent4 = epsilon_greedy_agent(10, epsilon = 0.5, initial_value = 0)
 	tb = bandit_problem_test_bed(10)
 	tb.test(agent1,time_steps = 1000, runs = 2000)
 	tb.test(agent2,time_steps = 1000, runs = 2000)
@@ -117,5 +122,18 @@ def experiment1():
 	tb.show_figures()
 
 
+def experiment2():
+	"""
+	To demostrate the effect of optimistic initial values
+	"""
+	agent1 = epsilon_greedy_agent(10, epsilon = 0, initial_value = 5)
+	agent2 = epsilon_greedy_agent(10, epsilon = 0.1, initial_value = 0)
+	tb = bandit_problem_test_bed(10)
+	tb.test(agent1,time_steps = 1000, runs = 2000)
+	tb.test(agent2,time_steps = 1000, runs = 2000)
+	tb.show_figures()
+
+
 if __name__ == '__main__':
-	experiment1()
+	# experiment1()
+	experiment2()
