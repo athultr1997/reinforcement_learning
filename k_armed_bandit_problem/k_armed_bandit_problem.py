@@ -60,24 +60,73 @@ class bandit_problem_test_bed:
 	def calculate_reward(self, action):
 		return np.random.normal(loc = self.true_values[action], scale = 1.0, size = None)
 
+	# def plot_init(self):
+		# plt.figure(num=1,figsize=(12, 9))
+		# for spine in plt.gca().spines.values():
+  #   		spine.set_visible(False)
+
+
+		# plt.figure(num=2,figsize=(12, 9))
+		# for spine in plt.gca().spines.values():
+  #   		spine.set_visible(False)
+
+
+
 	def plot(self, avg_rewards_list, opt_action_per_list, agent):
 		plt.figure(1)
 		plt.plot(range(self.time_steps),avg_rewards_list,label = "$\epsilon$ = " + str(agent.epsilon) + "; initial value = " + str(agent.initial_value))
 		plt.figure(2)
 		plt.plot(range(self.time_steps),opt_action_per_list,label = "$\epsilon$ = " + str(agent.epsilon) + "; initial value = " + str(agent.initial_value))
 
-	def show_figures(self):
-		plt.figure(1)
-		plt.title("Average Rewards VS Time Step Graph for " + str(self.N) + " Bandits")
-		plt.ylabel("Average Rewards for " + str(self.runs) + " Runs")
-		plt.xlabel("Time Step")
-		plt.legend()		
+	# def show_figures(self):
+	# 	plt.figure(1)
+	# 	plt.title("Average Rewards VS Time Step Graph for " + str(self.N) + " Bandits")
+	# 	plt.ylabel("Average Rewards for " + str(self.runs) + " Runs")
+	# 	plt.xlabel("Time Step")
+	# 	plt.legend()		
 
-		plt.figure(2)
-		plt.title("Percentage Optimal Action VS Time Step Graph for " + str(self.N) + " Bandits")
-		plt.ylabel("Percentage Optimal Action for " + str(self.runs) + " Runs")
-		plt.xlabel("Time Step")
-		plt.legend()
+	# 	plt.figure(2)
+	# 	plt.title("Percentage Optimal Action VS Time Step Graph for " + str(self.N) + " Bandits")
+	# 	plt.ylabel("Percentage Optimal Action for " + str(self.runs) + " Runs")
+	# 	plt.xlabel("Time Step")
+	# 	plt.legend()
+
+	# 	plt.show()
+
+	def show_figures(self):
+		plt.figure(num=1,figsize=(12, 9))
+		plt.gca().spines["right"].set_visible(False)
+		plt.gca().spines["top"].set_visible(False)
+		plt.gca().spines["bottom"].set_visible(True)
+		plt.gca().spines["left"].set_visible(True)				
+		plt.gca().get_xaxis().tick_bottom()
+		plt.gca().get_yaxis().tick_left()
+		plt.ylim(0,1.8)
+		plt.xlim(0,1000)
+		plt.xticks(np.arange(0,1001,100),fontsize=14)
+		plt.yticks(np.arange(0,1.81,0.2),fontsize=14)
+		plt.title("Average Reward Plot for " + str(self.N) + " Bandits",fontsize=22)
+		plt.ylabel("Average Rewards for " + str(self.runs) + " Runs",fontsize=16)
+		plt.xlabel("Time Steps",fontsize=16)
+		plt.legend(loc="upper left",fontsize=14)
+		plt.savefig("Average Rewards",bbox_inches="tight")		
+
+		plt.figure(num=2,figsize=(12, 9))
+		plt.gca().spines["right"].set_visible(False)
+		plt.gca().spines["top"].set_visible(False)
+		plt.gca().spines["left"].set_visible(True)
+		plt.gca().spines["bottom"].set_visible(True)				
+		plt.gca().get_xaxis().tick_bottom()
+		plt.gca().get_yaxis().tick_left()
+		plt.ylim(0,100)
+		plt.xlim(0,1000)
+		plt.xticks(np.arange(0,1001,100),fontsize=14)
+		plt.yticks(np.arange(0,101,10),fontsize=14)
+		plt.title("Percentage Optimal Action for " + str(self.N) + " Bandits",fontsize=22)
+		plt.ylabel("Percentage Optimal Action for " + str(self.runs) + " Runs",fontsize=16)
+		plt.xlabel("Time Steps",fontsize=16)
+		plt.legend(loc="upper left",fontsize=14)
+		plt.savefig("Percentage Optimal Action",bbox_inches="tight")
 
 		plt.show()
 
@@ -99,7 +148,7 @@ class bandit_problem_test_bed:
 				if action == self.optimal_action:
 					opt_action_list[j] += 1											
 		
-		opt_action_per_list = opt_action_list / self.runs
+		opt_action_per_list = opt_action_list / self.runs * 100
 		avg_rewards_list = rewards_list / self.runs
 
 		self.plot(avg_rewards_list, opt_action_per_list, agent)			
@@ -126,7 +175,7 @@ def experiment2():
 	"""
 	To demostrate the effect of optimistic initial values
 	"""
-	agent1 = epsilon_greedy_agent(10, epsilon = 0, initial_value = 5)
+	agent1 = epsilon_greedy_agent(10, epsilon = 0.0, initial_value = 5)
 	agent2 = epsilon_greedy_agent(10, epsilon = 0.1, initial_value = 0)
 	tb = bandit_problem_test_bed(10)
 	tb.test(agent1,time_steps = 1000, runs = 2000)
